@@ -1,0 +1,1 @@
+set object 1 circle front at 0.5,0.5 size 0.1 fillcolor rgb "black" lw 1
