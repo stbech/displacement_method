@@ -1,8 +1,4 @@
 import numpy as np
-#import string
-
-import json
-from copy import deepcopy
 
 
 #--------------------------------------------------------------------------------
@@ -18,28 +14,12 @@ def get_index(what: any, where: any):
         return None
 
 
-#--------------------------------------------------------------------------------
-### MATQS
-#--------------------------------------------------------------------------------
-
-
-def calculate_querschnittswerte(cross_sections: dict) -> dict:
-    """Calculate area and second moment of area for all cross sections
-    
-    Assuming the cross section is a rectangle; calculation can be explicity overridden by specifing A or I
-    """
-    for cs in cross_sections.values():
-        if ['A'] not in cs:
-            cs['A'] = cs['b']*cs['h']        # A = b*h
-        if ['I'] not in cs:
-            cs['I'] = cs['b']*cs['h']**3/12  # I = b*h**3/12
-
-    return cross_sections
-
 
 #--------------------------------------------------------------------------------
 ### SYSTEM
 #--------------------------------------------------------------------------------
+
+#TODO schreibe Funktion, die Liste von (Punkten) in bestimmten Abstand in Liste mit Zwischenpunkten schreibt
 
 #TODO (fast) überflüssig
 def calculate_bars(bars: list, nodes: list) -> dict:
@@ -319,7 +299,7 @@ def stabendweggroessen(db: dict, lc: int) -> np.array:
     
     v = a*V
     """
-    return db['system']['wgv']['a'].dot(db['calc'][lc]['V'])
+    return db['system']['wgv']['a'].dot(db['calc']['LC'][lc]['V'])
 
 
 #TODO rename
@@ -328,7 +308,7 @@ def stabendkraftgroessen(db: dict, lc: int) -> np.array:
     
     s = k*v + s_0
     """
-    return db['system']['wgv']['k'].dot(db['calc'][lc]['v']) + db['load']['LC'][lc]['wgv']['s_0']
+    return db['system']['wgv']['k'].dot(db['calc']['LC'][lc]['v']) + db['load']['LC'][lc]['wgv']['s_0']
 
 
 #TODO rename
@@ -338,7 +318,7 @@ def convert_kraftgroessen(db: dict, lc: int) -> np.array:
     Flip sign for every moment at the left end of a beam
     """
     n_bars = len(db['system']['bars'])
-    s_I = np.copy(db['calc'][lc]['s_II'])
+    s_I = np.copy(db['calc']['LC'][lc]['s_II'])
 
     for i in range(1,n_bars*2+2,3):
         s_I[i] *= -1
@@ -352,7 +332,7 @@ def schnittgroessen(db: dict, lc: int) -> dict:
     bars = db['system']['bars']
     bar_nrs = list(bars)
     #n_bars = len(bars)
-    s = db['calc'][lc]['s_I']
+    s = db['calc']['LC'][lc]['s_I']
     loads = db['load']['LC'][lc]['bar']
     s_bars = {}
 
@@ -361,9 +341,10 @@ def schnittgroessen(db: dict, lc: int) -> dict:
         s_bars[key] = dict()
         length = bar['L']
 
+        nr_points = len(bar['points'])
         # Schnittgrößen infolge Stabendkraftgrößen
-        s_bars[key]['N'] = [s[i*3]]*(bar['elems']+1)
-        s_bars[key]['V'] = [(s[i*3+2]-s[i*3+1])/length]*(bar['elems']+1)        # konstanter Mittelwert ohne Last
+        s_bars[key]['N'] = [s[i*3]]*(nr_points)
+        s_bars[key]['V'] = [(s[i*3+2]-s[i*3+1])/length]*(nr_points)        # konstanter Mittelwert ohne Last
         s_bars[key]['M'] = [s[i*3+1]*(1-x/length) + s[i*3+2]*x/length for x in bar['points']]
         # Berechnung von M und V am freigeschnittenen Stabelement über Gleichgewichtsbeziehungen
 
@@ -403,8 +384,8 @@ def deflection(db: dict, lc: int) -> dict:
         alpha = np.radians(bar['alpha'])
         
         # Verformung infolge Stabendtangentenwinkel
-        tau_l = db['calc'][lc]['v'][3*i+1]
-        tau_r = db['calc'][lc]['v'][3*i+2]
+        tau_l = db['calc']['LC'][lc]['v'][3*i+1]
+        tau_r = db['calc']['LC'][lc]['v'][3*i+2]
         
         w_bars[key] = [w_tau(x, tau_l, length) + w_tau(length-x, -tau_r, length) for x in bar['points']]
 
@@ -413,7 +394,7 @@ def deflection(db: dict, lc: int) -> dict:
         for j, lr in enumerate(('l', 'r')):
             for v in ('x', 'z'):
                 if (index := get_index((bar[lr], v), deg_of_freedom)) != None:
-                    dv[v][j] = db['calc'][lc]['V'][index]
+                    dv[v][j] = db['calc']['LC'][lc]['V'][index]
 
         # Stabanfangs- und Endverschiebung quer zur Stabrichtung
         w_l = dv['x'][0]*np.sin(alpha) + dv['z'][0]*np.cos(alpha)
@@ -433,9 +414,5 @@ def deflection(db: dict, lc: int) -> dict:
             w_bars[bar][i] += w_triang(x/length, p_zr, length, EI) + w_triang(1-x/length, p_zl, length, EI)
 
     return w_bars
-
-
-
-
 
 

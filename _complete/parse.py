@@ -277,6 +277,12 @@ def create_CS_QC(db: dict, module_db: dict, values: dict, defaults: dict) -> dic
 
 
 
+def create_CS_PROF(db: dict, module_db: dict, values: dict, defaults: dict) -> dict: 
+    #TODO nicht implementiert
+    raise Exception('PROF not yet implemented')
+
+
+
 #------------------------------------------------------------------------------------
 # SYSTEM
 #------------------------------------------------------------------------------------
@@ -394,6 +400,18 @@ def add_SPTS(db: dict, module_db: dict, values: dict, defaults: dict) -> dict:
 
 
 
+def intermediate_points(sdiv: float, length: float):
+    # Unterteile Stab in 'sdiv' Teile -> 'sdiv'-1 Zwischenpunkte + Anfangs- und Endpunkt
+    if sdiv > 0:
+        sdiv = -(length//sdiv + 1) if length%sdiv != 0 else -length//sdiv
+    
+    sdiv = int(-sdiv)
+    points = [x*length/sdiv for x in range(0,sdiv+1)]
+
+    return points
+
+
+
 def node_joint(string: str, error_text: str) -> dict:
     joint = {'N': -1, 'V': -1, 'M': -1}
     
@@ -470,6 +488,13 @@ def create_SLN(db: dict, module_db: dict, values: dict, defaults: dict) -> dict:
 
     if not(sdiv):
         sdiv = module_db['system']['globals']['HMIN']
+    else:
+        if sdiv == 0:
+            raise Exception('Bar divider SDIV cannot be zero')
+        elif sdiv%1 != 0 and sdiv < 0:
+            raise Exception('If bar divider SDIV is negativ, it must be an Integer')
+
+    points = intermediate_points(sdiv, length)
 
     bez = find_key('BEZ', values, defaults)
 
@@ -491,7 +516,8 @@ def create_SLN(db: dict, module_db: dict, values: dict, defaults: dict) -> dict:
         'EA': cs['A']*E,
         'fixa': fixa,
         'fixe': fixe,
-        'elems': sdiv,
+        #'elems': sdiv,
+        'points': points,
         'bez': bez
     }}}
 
@@ -973,7 +999,7 @@ def add_LC_comb(db: dict, module_db: dict, values: dict, defaults: dict) -> dict
                 komb['LC'][nr_LC] = (last_act, sup.upper())
     elif nr == '0': 
         for nr_LC, LC in db['load']['LC'].items():
-            if LC['act'].startswith(last_act + '_'):
+            if LC['act'].startswith(last_act + '_') or LC['act'] == last_act:
                 komb['LC'][nr_LC] = (last_act, sup.upper())
     else:
         komb['LC'][nr] = (last_act, sup.upper())

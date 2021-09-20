@@ -1,4 +1,7 @@
-def log_text_ULS_dead_load(db: dict, lc: str, gamma: str, i_point: int) -> str:
+from functools import reduce
+
+
+def log_text_ULS_dead_load(db: dict, lc: str, komb: str, path: tuple, gamma: str, i_point: int) -> str:
     """Return text for log-file with all relevant parameters for a load, which is not reduced by a factor psi.
     
     Parameters
@@ -19,12 +22,19 @@ def log_text_ULS_dead_load(db: dict, lc: str, gamma: str, i_point: int) -> str:
     """
 
     gamma_text = 'gamma_F' if gamma == 'GAMF' else 'gamma_U'    # change gamma to a more readable format, where the last char is easily distinguishable
+    
+    exp_path = ['calc', 'LC', lc]
+    exp_path.extend(path)
+    val = reduce(dict.get, exp_path, db)[i_point]
 
-    return f'{lc:>3}: {db[lc]["val"][i_point]:>6}*{db[lc][gamma]:>4.2f}      = {(db[lc]["val"][i_point]*db[lc][gamma]):>7.3f}  ({gamma_text}, {db[lc]["part"]}, {db[lc]["sup"]:>4}, {db[lc]["ACT"]:>3})\n'
+    params = db['comb']['komb'][komb]['LC'][lc]
+    act = db["load"]["act"][params[0]]
+
+    return f'{lc:>3}: {val:>7.3f}*{act[gamma]:>4.2f}      = {(val*act[gamma]):>7.3f}  ({gamma_text}, {act["part"]}, {params[1]:>4}, {params[0]:>3})\n'
 
 
 
-def log_text_ULS_live_load(db: dict, lc: str, gamma: str, psi: str, i_point: int) -> str:
+def log_text_ULS_live_load(db: dict, lc: str, komb: str, path: tuple, gamma: str, psi: str, i_point: int) -> str:
     """Return text for log-file with all relevant parameters for a load, which is reduced by a factor psi.
     
     Parameters
@@ -48,11 +58,18 @@ def log_text_ULS_live_load(db: dict, lc: str, gamma: str, psi: str, i_point: int
 
     gamma_text = 'gamma_F' if gamma == 'GAMF' else 'gamma_U'    # change gamma to a more readable format, where the last char is easily distinguishable
 
-    return f'{lc:>3}: {db[lc]["val"][i_point]:>6}*{db[lc][gamma]:>4.2f}*{db[lc][psi]:>4.2f} = {(db[lc]["val"][i_point]*db[lc][gamma]*db[lc][psi]):>7.3f}  ({gamma_text}, {db[lc]["part"]}, {db[lc]["sup"]:>4}, {db[lc]["ACT"]:>3})\n'
+    exp_path = ['calc', 'LC', lc]
+    exp_path.extend(path)
+    val = reduce(dict.get, exp_path, db)[i_point]
+
+    params = db['comb']['komb'][komb]['LC'][lc]
+    act = db["load"]["act"][params[0]]
+
+    return f'{lc:>3}: {val:>7.3f}*{act[gamma]:>4.2f}*{act[psi]:>4.2f} = {(val*act[gamma]*act[psi]):>7.3f}  ({gamma_text}, {act["part"]}, {params[1]:>4}, {params[0]:>3})\n'
 
 
 
-def log_text_SLS_dead_load(db: dict, lc: str, i_point: int) -> str:
+def log_text_SLS_dead_load(db: dict, lc: str, komb: str, path: tuple, i_point: int) -> str:
     """Return text for log-file with all relevant parameters for a load, which is not reduced by a factor psi.
     
     Parameters
@@ -70,11 +87,18 @@ def log_text_SLS_dead_load(db: dict, lc: str, i_point: int) -> str:
         Information about use of loadcase within the combination
     """
 
-    return f'{lc:>3}: {db[lc]["val"][i_point]:>6}           = {(db[lc]["val"][i_point]):>7.3f}  ({db[lc]["part"]}, {db[lc]["sup"]:>4}, {db[lc]["ACT"]:>3})\n'
+    exp_path = ['calc', 'LC', lc]
+    exp_path.extend(path)
+    val = reduce(dict.get, exp_path, db)[i_point]
+    
+    params = db['comb']['komb'][komb]['LC'][lc]
+    act = db["load"]["act"][params[0]]
+
+    return f'{lc:>3}: {val:>7.3f}           = {val:>7.3f}  ({act["part"]}, {params[1]:>4}, {params[0]:>3})\n'
 
 
 
-def log_text_SLS_live_load(db: dict, lc: str, gamma: str, psi: str, i_point: int) -> str:
+def log_text_SLS_live_load(db: dict, lc: str, komb: str, path: tuple, gamma: str, psi: str, i_point: int) -> str:
     """Return text for log-file with all relevant parameters for a load, which is reduced by a factor psi.
 
     Parameters
@@ -98,11 +122,18 @@ def log_text_SLS_live_load(db: dict, lc: str, gamma: str, psi: str, i_point: int
 
     gamma_val = 0 if gamma == 'GAMF' else 1     # multiply favourable loads by zero
 
-    return f'{lc:>3}: {db[lc]["val"][i_point]:>6}*{gamma_val:>4.2f}*{db[lc][psi]:>4.2f} = {(db[lc]["val"][i_point]*gamma_val*db[lc][psi]):>7.3f}  ({db[lc]["part"]}, {db[lc]["sup"]:>4}, {db[lc]["ACT"]:>3})\n'
+    exp_path = ['calc', 'LC', lc]
+    exp_path.extend(path)
+    val = reduce(dict.get, exp_path, db)[i_point]
+    
+    params = db['comb']['komb'][komb]['LC'][lc]
+    act = db["load"]["act"][params[0]]
+
+    return f'{lc:>3}: {val:>7.3f}*{gamma_val:>4.2f}*{act[psi]:>4.2f} = {(val*gamma_val*act[psi]):>7.3f}  ({act["part"]}, {params[1]:>4}, {params[0]:>3})\n'
 
 
 
-def log_text_dead_load(db: dict, lc: str, gamma: str, i_point: int, state: str) -> str:
+def log_text_dead_load(db: dict, lc: str, komb: str, path: tuple, gamma: str, i_point: int, state: str) -> str:
     """Decide whether log text for dead loads should include partial safety factors
 
     Parameters
@@ -125,13 +156,13 @@ def log_text_dead_load(db: dict, lc: str, gamma: str, i_point: int, state: str) 
     """
 
     if state == 'ULS':
-        return log_text_ULS_dead_load(db, lc, gamma, i_point)
+        return log_text_ULS_dead_load(db, lc, komb, path, gamma, i_point)
     else:
-        return log_text_SLS_dead_load(db, lc, i_point)
+        return log_text_SLS_dead_load(db, lc, komb, path, i_point)
 
 
 
-def log_text_live_load(db: dict, lc: str, gamma: str, psi: str, i_point: int, state: str) -> str:
+def log_text_live_load(db: dict, lc: str, komb: str, path: tuple, gamma: str, psi: str, i_point: int, state: str) -> str:
     """Decide whether log text for live loads should include partial safety factors
 
     Parameters
@@ -156,13 +187,13 @@ def log_text_live_load(db: dict, lc: str, gamma: str, psi: str, i_point: int, st
     """
 
     if state == 'ULS':
-        return log_text_ULS_live_load(db, lc, gamma, psi, i_point)
+        return log_text_ULS_live_load(db, lc, komb, path, gamma, psi, i_point)
     else:
-        return log_text_SLS_live_load(db, lc, gamma, psi, i_point)
+        return log_text_SLS_live_load(db, lc, komb, path, gamma, psi, i_point)
 
 
 
-def combine_dead_loads(db: dict, AG_nums: list, comb_dict: dict, i_point: int, logging: bool, max_res: bool, state: str) -> tuple:
+def combine_dead_loads(db: dict, AG_nums: list, comb_dict: dict, i_point: int, logging: bool, max_res: bool, state: str, path: tuple = None, komb: str = None) -> tuple:
     """Combine all dead loads.
 
     Combination types:
@@ -184,6 +215,7 @@ def combine_dead_loads(db: dict, AG_nums: list, comb_dict: dict, i_point: int, l
         Decides whether information about the combination process should be tracked
     max_res : bool
         Decides whether the combination should be maximized (True) or minimized (False)
+    #TODO add state and path
 
     Returns
     -------
@@ -236,9 +268,9 @@ def combine_dead_loads(db: dict, AG_nums: list, comb_dict: dict, i_point: int, l
 
         if logging:
             if (max_res and sup > inf) or (not(max_res) and sup < inf): #TODO größer gleich Zeichen?
-                log += log_text_dead_load(db, key, 'GAMU', i_point, state)
+                log += log_text_dead_load(db, key, komb, path, 'GAMU', i_point, state)
             else:
-                log += log_text_dead_load(db, key, 'GAMF', i_point, state)
+                log += log_text_dead_load(db, key, komb, path, 'GAMF', i_point, state)
         
         # if the maximum (minimum) combination is required, add higher absolute value, else lower absolute 
         if (max_res and sup > inf) or (not(max_res) and sup < inf):
@@ -251,24 +283,24 @@ def combine_dead_loads(db: dict, AG_nums: list, comb_dict: dict, i_point: int, l
     for act_key, act in comb_dict['G'].items():     # iterate over actions
         sup, inf = 0, 0     # inital values
 
-        for LC in act.values():
-            sup += LC['sup']
-            inf += LC['inf']
+        for nr_LC in act.values():
+            sup += nr_LC['sup']
+            inf += nr_LC['inf']
 
         if logging:
             if (max_res and sup > inf) or (not(max_res) and sup < inf):
                 for key in act:
                     # if load_case was of type AG_ and superiour value is zero, ignore it (dummy entry)
-                    if db[key]['sup'].startswith('AG') and act[key]['sup'] == 0:  
+                    if db['comb']['komb'][komb]['LC'][key][1].startswith('AG') and act[key]['sup'] == 0:  
                         continue
 
-                    log += log_text_dead_load(db, key, 'GAMU', i_point, state)
+                    log += log_text_dead_load(db, key, komb, path, 'GAMU', i_point, state)
             else:
                 for key in act:
-                    if db[key]['sup'].startswith('AG') and act[key]['inf'] == 0:
+                    if db['comb']['komb'][komb]['LC'][key][1].startswith('AG') and act[key]['inf'] == 0:
                         continue
 
-                    log += log_text_dead_load(db, key, 'GAMF', i_point, state)
+                    log += log_text_dead_load(db, key, komb, path, 'GAMF', i_point, state)
         
         # add higher absolute value to accumulated dead loads
         if (max_res and sup > inf) or (not(max_res) and sup < inf):
@@ -284,7 +316,7 @@ def combine_dead_loads(db: dict, AG_nums: list, comb_dict: dict, i_point: int, l
 
 
 
-def combine_live_loads(db: dict, A_nums: list, comb_dict: dict, i_point: int, logging: bool, max_res: bool, state: str) -> tuple:
+def combine_live_loads(db: dict, A_nums: list, comb_dict: dict, i_point: int, logging: bool, max_res: bool, state: str, path: tuple = None, komb: str = None) -> tuple:
     """Combine all live loads.
 
     Combination types:
@@ -306,6 +338,7 @@ def combine_live_loads(db: dict, A_nums: list, comb_dict: dict, i_point: int, lo
         Decides whether information about the combination process should be tracked
     max_res : bool
         Decides whether the combination should be maximized (True) or minimized (False)
+    #TODO add state and path
 
     Returns
     -------
@@ -406,27 +439,36 @@ def combine_live_loads(db: dict, A_nums: list, comb_dict: dict, i_point: int, lo
             if state.endswith('-PERM'):
                 psi_lead, psi_acco = 'PSI2', 'PSI2'       #TODO falsch, da keine LEW?
             elif state.endswith('-FREQ'):
-                psi_lead, psi_acco = 'PSI1', 'PSI2'       
+                psi_lead, psi_acco = 'PSI1', 'PSI2'     
+
+            exp_path = ['calc', 'LC', lead_case['lc']]
+            exp_path.extend(path)
+            val = reduce(dict.get, exp_path, db)[i_point]
 
             # log leading loadcase with GAMU if unfavourable or GAMF if favourable
-            if (max_res and db[lead_case['lc']]['val'][i_point] > 0) or (not(max_res) and db[lead_case['lc']]['val'][i_point] < 0):
+            if (max_res and val > 0) or (not(max_res) and val < 0):
                 # if ULS or SLS-Rare no combination factor is required for leading loadcase, hence log like a dead load
                 if state.endswith('-PERM') or state.endswith('FREQ'):
-                    log += log_text_live_load(db, lead_case['lc'], 'GAMU', psi_lead, i_point, state)
+                    log += log_text_live_load(db, lead_case['lc'], komb, path, 'GAMU', psi_lead, i_point, state)
                 else:
-                    log += log_text_dead_load(db, lead_case['lc'], 'GAMU', i_point, state)
+                    log += log_text_dead_load(db, lead_case['lc'], komb, path, 'GAMU', i_point, state)
             else:
                 if state.endswith('-PERM') or state.endswith('FREQ'):
-                    log += log_text_live_load(db, lead_case['lc'], 'GAMF', psi_lead, i_point, state)
+                    log += log_text_live_load(db, lead_case['lc'], komb, path, 'GAMF', psi_lead, i_point, state)
                 else:
-                    log += log_text_dead_load(db, lead_case['lc'], 'GAMF', i_point, state)
+                    log += log_text_dead_load(db, lead_case['lc'], komb, path, 'GAMF', i_point, state)
+
 
             # for all accompanying loadcases log with according combination factor
             for lc in log_lcs:
-                if (max_res and db[lc]['val'][i_point] > 0) or (not(max_res) and db[lc]['val'][i_point] < 0):
-                    log += log_text_live_load(db, lc, 'GAMU', psi_acco, i_point, state)
+                exp_path = ['calc', 'LC', lc]
+                exp_path.extend(path)
+                val = reduce(dict.get, exp_path, db)[i_point]
+
+                if (max_res and val > 0) or (not(max_res) and val < 0):
+                    log += log_text_live_load(db, lc, komb, path, 'GAMU', psi_acco, i_point, state)
                 else:
-                    log += log_text_live_load(db, lc, 'GAMF', psi_acco, i_point, state)       
+                    log += log_text_live_load(db, lc, komb, path, 'GAMF', psi_acco, i_point, state)       
             
         # remove accompanying value of leading loadcase from sum
         acco -= comb_dict['Q'][lead_case['act']][lead_case['lc']]['acco'] 
@@ -443,14 +485,16 @@ def combine_live_loads(db: dict, A_nums: list, comb_dict: dict, i_point: int, lo
 
 
 
-def comb_ULS(db: dict, LCs: dict, max_res: bool, i_point: int, logging: bool = False) -> tuple: 
+def comb_ULS(db: dict, path: tuple, komb: str, LCs: list, max_res: bool, i_point: int, logging: bool = False) -> tuple: 
     """Combination for Ultimate limit state
 
     Parameters
     ----------
     db : dict
         Dictionary containing all defined loadcases and actions
-    LCs : dict or list
+    path: tuple
+        #TODO add
+    LCs : dict
         Loadcases to combine
     max_res : bool
         Decides whether the combination should be maximized (True) or minimized (False)
@@ -471,27 +515,30 @@ def comb_ULS(db: dict, LCs: dict, max_res: bool, i_point: int, logging: bool = F
     comb_dict = {'G': {}, 'Q': {}}      # initiate dictionary for saving favourable and unfavourable values of loadcases
     AG_nums = []
     A_nums = []
-
-    for LC in LCs:
-        LC = str(LC)        # convert to string
+    
+    for nr_LC in LCs:
+        act, sup = db['comb']['komb'][komb]['LC'][nr_LC]
+        exp_path = ['calc', 'LC', nr_LC]
+        exp_path.extend(path)
+        val = reduce(dict.get, exp_path, db)[i_point]
 
         # if combination type is G, save superior and inferior value of loadcase, grouped by actions
-        if db[LC]['sup'] == 'G' or db[LC]['sup'] == 'PERM':
-            if db[LC]['ACT'] not in comb_dict['G']:
-                comb_dict['G'][db[LC]['ACT']] = {}
+        if sup == 'G' or sup == 'PERM':
+            if act not in comb_dict['G']:
+                comb_dict['G'][act] = {}
 
-            comb_dict['G'][db[LC]['ACT']][LC] = {'sup': db[LC]['val'][i_point]*db[LC]['GAMU'], 'inf': db[LC]['val'][i_point]*db[LC]['GAMF']}
+            comb_dict['G'][act][nr_LC] = {'sup': val*db['load']['act'][act]['GAMU'], 'inf': val*db['load']['act'][act]['GAMF']}
           
         # if combination type is PERC, just save superior and inferior value of loadcase
-        elif db[LC]['sup'] == 'PERC':
-            if db[LC]['sup'] not in comb_dict:
-                comb_dict[db[LC]['sup']] = {}
+        elif sup == 'PERC':
+            if sup not in comb_dict:
+                comb_dict[sup] = {}
 
-            comb_dict['PERC'][LC] = {'sup': db[LC]['val'][i_point]*db[LC]['GAMU'], 'inf': db[LC]['val'][i_point]*db[LC]['GAMF']}
+            comb_dict['PERC'][nr_LC] = {'sup': val*db['load']['act'][act]['GAMU'], 'inf': val*db['load']['act'][act]['GAMF']}
 
         # if combination type is AG_, save superior and inferior value of loadcase to own dictionary, grouped by action
-        elif db[LC]['sup'].startswith('AG') or db[LC]['sup'] == 'ALEX':   
-            comb_type = 'AG1' if db[LC]['sup'] == 'ALEX' else db[LC]['sup']     # convert ALEX to AG1
+        elif sup.startswith('AG') or sup == 'ALEX':   
+            comb_type = 'AG1' if sup == 'ALEX' else sup     # convert ALEX to AG1
 
             if comb_type not in comb_dict:
                 AG_nums.append(comb_type)       # save number of permanent alternative load group
@@ -499,50 +546,50 @@ def comb_ULS(db: dict, LCs: dict, max_res: bool, i_point: int, logging: bool = F
                 comb_dict[comb_type] = {}
 
             # group loadcases by action
-            if db[LC]['ACT'] not in comb_dict[comb_type]:
-                comb_dict[comb_type][db[LC]['ACT']] = {}
+            if act not in comb_dict[comb_type]:
+                comb_dict[comb_type][act] = {}
 
-            comb_dict[comb_type][db[LC]['ACT']][LC] = {'sup': db[LC]['val'][i_point]*db[LC]['GAMU'], 'inf': db[LC]['val'][i_point]*db[LC]['GAMF']}
+            comb_dict[comb_type][act][nr_LC] = {'sup': val*db['load']['act'][act]['GAMU'], 'inf': val*db['load']['act'][act]['GAMF']}
 
         # if combination type is Q, save leading and accompanying value of loadcase
-        elif db[LC]['sup'] == 'Q' or db[LC]['sup'] == 'COND':
-            if db[LC]['ACT'] not in comb_dict['Q']:
-                comb_dict['Q'][db[LC]['ACT']] = {}
+        elif sup == 'Q' or sup == 'COND':
+            if act not in comb_dict['Q']:
+                comb_dict['Q'][act] = {}
 
-            val = db[LC]['val'][i_point]
+            val = val
 
             # if load is unfavourable multiply by GAMU else multiply by GAMF
             if (max_res and val > 0) or (not(max_res) and val < 0):
-                comb_dict['Q'][db[LC]['ACT']][LC] = {'lead': val*db[LC]['GAMU'], 'acco': val*db[LC]['GAMU']*db[LC]['PSI0']}
+                comb_dict['Q'][act][nr_LC] = {'lead': val*db['load']['act'][act]['GAMU'], 'acco': val*db['load']['act'][act]['GAMU']*db['load']['act'][act]['PSI0']}
             else:
-                comb_dict['Q'][db[LC]['ACT']][LC] = {'lead': val*db[LC]['GAMF'], 'acco': val*db[LC]['GAMF']*db[LC]['PSI0']}
+                comb_dict['Q'][act][nr_LC] = {'lead': val*db['load']['act'][act]['GAMF'], 'acco': val*db['load']['act'][act]['GAMF']*db['load']['act'][act]['PSI0']}
 
         # if combination type is A_, save leading and accompanying value of loadcase to own dictionary, grouped by action
-        elif db[LC]['sup'].startswith('A') or db[LC]['sup'] == 'EXCL':     
-            comb_type = 'A1' if db[LC]['sup'] == 'EXCL' else db[LC]['sup']  # convert EXCL to A1
+        elif sup.startswith('A') or sup == 'EXCL':     
+            comb_type = 'A1' if sup == 'EXCL' else sup  # convert EXCL to A1
 
             if comb_type not in comb_dict:
                 A_nums.append(comb_type)    # save number of alternative load group
 
                 comb_dict[comb_type] = {}
 
-            if db[LC]['ACT'] not in comb_dict[comb_type]:
-                comb_dict[comb_type][db[LC]['ACT']] = {}
+            if act not in comb_dict[comb_type]:
+                comb_dict[comb_type][act] = {}
 
-            val = db[LC]['val'][i_point]
+            val = val
 
             # if load is unfavourable multiply by GAMU else multiply by GAMF
             if (max_res and val > 0) or (not(max_res) and val < 0):
-                comb_dict[comb_type][db[LC]['ACT']][LC] = {'lead': val*db[LC]['GAMU'], 'acco': val*db[LC]['GAMU']*db[LC]['PSI0']}
+                comb_dict[comb_type][act][nr_LC] = {'lead': val*db['load']['act'][act]['GAMU'], 'acco': val*db['load']['act'][act]['GAMU']*db['load']['act'][act]['PSI0']}
             else:
-                comb_dict[comb_type][db[LC]['ACT']][LC] = {'lead': val*db[LC]['GAMF'], 'acco': val*db[LC]['GAMF']*db[LC]['PSI0']}
+                comb_dict[comb_type][act][nr_LC] = {'lead': val*db['load']['act'][act]['GAMF'], 'acco': val*db['load']['act'][act]['GAMF']*db['load']['act'][act]['PSI0']}
 
 
     #TODO log AG und A Entscheidung
     #-------------
     if logging: 
-        g_load, g_log = combine_dead_loads(db, AG_nums, comb_dict, i_point, logging, max_res, 'ULS')
-        q_load, q_log = combine_live_loads(db, A_nums, comb_dict, i_point, logging, max_res, 'ULS')
+        g_load, g_log = combine_dead_loads(db, AG_nums, comb_dict, i_point, logging, max_res, 'ULS', path, komb)
+        q_load, q_log = combine_live_loads(db, A_nums, comb_dict, i_point, logging, max_res, 'ULS', path, komb)
     else:
         g_load = combine_dead_loads(db, AG_nums, comb_dict, i_point, logging, max_res, 'ULS')
         q_load = combine_live_loads(db, A_nums, comb_dict, i_point, logging, max_res, 'ULS')
@@ -555,14 +602,16 @@ def comb_ULS(db: dict, LCs: dict, max_res: bool, i_point: int, logging: bool = F
 
 
 
-def comb_SLS(db: dict, LCs: dict, max_res: bool, i_point: int, comb: str, logging: bool = False) -> tuple: 
+def comb_SLS(db: dict, path: tuple, komb: str, LCs: list, max_res: bool, i_point: int, comb: str, logging: bool = False) -> tuple: 
     """Combination for Serviceability limit state
 
     Parameters
     ----------
     db : dict
         Dictionary containing all defined loadcases and actions
-    LCs : dict or list
+    path : tuple
+        #TODO add
+    LCs : dict
         Loadcases to combine
     max_res : bool
         Decides whether the combination should be maximized (True) or minimized (False)
@@ -583,30 +632,34 @@ def comb_SLS(db: dict, LCs: dict, max_res: bool, i_point: int, comb: str, loggin
     """
 
     #TODO log text anpassen
+
     comb_dict = {'G': {}, 'Q': {}}      # initiate dictionary for saving favourable and unfavourable values of loadcases
     AG_nums = []
     A_nums = []
-
-    for LC in LCs:
-        LC = str(LC)        # convert to string
+    #TODO falsch Lastfälle nach KLED auswählen
+    for nr_LC in LCs:
+        act, sup = db['comb']['komb'][komb]['LC'][nr_LC]
+        exp_path = ['calc', 'LC', nr_LC]
+        exp_path.extend(path)
+        val = reduce(dict.get, exp_path, db)[i_point]
 
         # if combination type is G, save superior and inferior value of loadcase, grouped by actions
-        if db[LC]['sup'] == 'G' or db[LC]['sup'] == 'PERM':
-            if db[LC]['ACT'] not in comb_dict['G']:
-                comb_dict['G'][db[LC]['ACT']] = {}
+        if sup == 'G' or sup == 'PERM':
+            if act not in comb_dict['G']:
+                comb_dict['G'][act] = {}
             #TODO Werte gleich -> einfachere Überlagerung?
-            comb_dict['G'][db[LC]['ACT']][LC] = {'sup': db[LC]['val'][i_point], 'inf': db[LC]['val'][i_point]}
+            comb_dict['G'][act][nr_LC] = {'sup': val, 'inf': val}
           
         # if combination type is PERC, just save superior and inferior value of loadcase
-        elif db[LC]['sup'] == 'PERC':
-            if db[LC]['sup'] not in comb_dict:
-                comb_dict[db[LC]['sup']] = {}
+        elif sup == 'PERC':
+            if sup not in comb_dict:
+                comb_dict[sup] = {}
 
-            comb_dict['PERC'][LC] = {'sup': db[LC]['val'][i_point], 'inf': db[LC]['val'][i_point]}
+            comb_dict['PERC'][nr_LC] = {'sup': val, 'inf': val}
 
         # if combination type is AG_, save superior and inferior value of loadcase to own dictionary, grouped by action
-        elif db[LC]['sup'].startswith('AG'):     
-            comb_type = 'AG1' if db[LC]['sup'] == 'ALEX' else db[LC]['sup']     # convert ALEX to AG1
+        elif sup.startswith('AG'):     
+            comb_type = 'AG1' if sup == 'ALEX' else sup     # convert ALEX to AG1
 
             if comb_type not in comb_dict:
                 AG_nums.append(comb_type)       # save number of permanent alternative load group
@@ -614,68 +667,64 @@ def comb_SLS(db: dict, LCs: dict, max_res: bool, i_point: int, comb: str, loggin
                 comb_dict[comb_type] = {}
 
             # group loadcases by action
-            if db[LC]['ACT'] not in comb_dict[comb_type]:
-                comb_dict[comb_type][db[LC]['ACT']] = {}
+            if act not in comb_dict[comb_type]:
+                comb_dict[comb_type][act] = {}
 
-            comb_dict[comb_type][db[LC]['ACT']][LC] = {'sup': db[LC]['val'][i_point], 'inf': db[LC]['val'][i_point]}
+            comb_dict[comb_type][act][nr_LC] = {'sup': val, 'inf': val}
 
         # if combination type is Q, save leading and accompanying value of loadcase
-        elif db[LC]['sup'] == 'Q' or db[LC]['sup'] == 'COND':
-            if db[LC]['ACT'] not in comb_dict['Q']:
-                comb_dict['Q'][db[LC]['ACT']] = {}
-
-            val = db[LC]['val'][i_point]
+        elif sup == 'Q' or sup == 'COND':
+            if act not in comb_dict['Q']:
+                comb_dict['Q'][act] = {}
 
             # get combination factor for required combination formula
             if comb == 'PERM':      #TODO gleich nur noch einen Wert angeben
-                lead_fac, acco_fac = db[LC]['PSI2'], db[LC]['PSI2']
+                lead_fac, acco_fac = db['load']['act'][act]['PSI2'], db['load']['act'][act]['PSI2']
             elif comb == 'FREQ':
-                lead_fac, acco_fac = db[LC]['PSI1'], db[LC]['PSI2']
+                lead_fac, acco_fac = db['load']['act'][act]['PSI1'], db['load']['act'][act]['PSI2']
             elif comb == 'RARE':
-                lead_fac, acco_fac = 1, db[LC]['PSI0']
+                lead_fac, acco_fac = 1, db['load']['act'][act]['PSI0']
             
             # if load is unfavourable multiply by leading factor else multiply by accompanying factor
             if (max_res and val > 0) or (not(max_res) and val < 0):
-                comb_dict['Q'][db[LC]['ACT']][LC] = {'lead': val*lead_fac, 'acco': val*acco_fac}
+                comb_dict['Q'][act][nr_LC] = {'lead': val*lead_fac, 'acco': val*acco_fac}
             else:
                 val = 0     # set value to zero, because it is favourable, do not ignore so that it shows in log
-                comb_dict['Q'][db[LC]['ACT']][LC] = {'lead': val*lead_fac, 'acco': val*acco_fac}
+                comb_dict['Q'][act][nr_LC] = {'lead': val*lead_fac, 'acco': val*acco_fac}
 
         # if combination type is A_, save leading and accompanying value of loadcase to own dictionary, grouped by action
-        elif db[LC]['sup'].startswith('A'):
-            comb_type = 'A1' if db[LC]['sup'] == 'EXCL' else db[LC]['sup']  # convert EXCL to A1
+        elif sup.startswith('A'):
+            comb_type = 'A1' if sup == 'EXCL' else sup  # convert EXCL to A1
 
             if comb_type not in comb_dict:
                 A_nums.append(comb_type)        # save number of alternative load group
 
                 comb_dict[comb_type] = {}
 
-            if db[LC]['ACT'] not in comb_dict[comb_type]:
-                comb_dict[comb_type][db[LC]['ACT']] = {}
-
-            val = db[LC]['val'][i_point]
+            if act not in comb_dict[comb_type]:
+                comb_dict[comb_type][act] = {}
 
             # get combination factor for required combination formula
             if comb == 'PERM':
-                lead_fac, acco_fac = db[LC]['PSI2'], db[LC]['PSI2']
+                lead_fac, acco_fac = db['load']['act'][act]['PSI2'], db['load']['act'][act]['PSI2']
             elif comb == 'FREQ':
-                lead_fac, acco_fac = db[LC]['PSI1'], db[LC]['PSI2']
+                lead_fac, acco_fac = db['load']['act'][act]['PSI1'], db['load']['act'][act]['PSI2']
             elif comb == 'RARE':
-                lead_fac, acco_fac = 1, db[LC]['PSI0']
+                lead_fac, acco_fac = 1, db['load']['act'][act]['PSI0']
 
             # if load is unfavourable multiply by leading factor else multiply by accompanying factor
             if (max_res and val > 0) or (not(max_res) and val < 0):
-                comb_dict[comb_type][db[LC]['ACT']][LC] = {'lead': val*lead_fac, 'acco': val*acco_fac}
+                comb_dict[comb_type][act][nr_LC] = {'lead': val*lead_fac, 'acco': val*acco_fac}
             else:
                 val = 0     # set value to zero, because it is favourable, do not ignore so that it shows in log
-                comb_dict[comb_type][db[LC]['ACT']][LC] = {'lead': val*lead_fac, 'acco': val*acco_fac}
+                comb_dict[comb_type][act][nr_LC] = {'lead': val*lead_fac, 'acco': val*acco_fac}
 
 
     #TODO log AG und A Entscheidung
     #-------------
     if logging: 
-        g_load, g_log = combine_dead_loads(db, AG_nums, comb_dict, i_point, logging, max_res, 'SLS-' + comb)
-        q_load, q_log = combine_live_loads(db, A_nums, comb_dict, i_point, logging, max_res, 'SLS-' + comb)
+        g_load, g_log = combine_dead_loads(db, AG_nums, comb_dict, i_point, logging, max_res, 'SLS-' + comb, path, komb)
+        q_load, q_log = combine_live_loads(db, A_nums, comb_dict, i_point, logging, max_res, 'SLS-' + comb, path, komb)
     else:
         g_load = combine_dead_loads(db, AG_nums, comb_dict, i_point, logging, max_res, 'SLS-' + comb)
         q_load = combine_live_loads(db, A_nums, comb_dict, i_point, logging, max_res, 'SLS-' + comb)
@@ -687,55 +736,3 @@ def comb_SLS(db: dict, LCs: dict, max_res: bool, i_point: int, comb: str, loggin
         return g_load + q_load
         
 
-
-
-test_db = {
-    '1': {'ACT': 'G_2', 'part': 'G', 'sup': 'G', 'val': [ 20.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    '2': {'ACT': 'G_2', 'part': 'G', 'sup': 'G', 'val': [-10.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    '3': {'ACT': 'Q_A', 'part': 'Q', 'sup': 'Q', 'val': [ 12.00,], 'GAMU': 1.50, 'GAMF': 0.00, 'PSI0': 0.70, 'PSI1': 0.50, 'PSI2': 0.30},
-    '4': {'ACT': 'S'  , 'part': 'Q', 'sup': 'Q', 'val': [ -40.00,], 'GAMU': 1.50, 'GAMF': 0.00, 'PSI0': 0.50, 'PSI1': 0.20, 'PSI2': 0.00},
-    '5': {'ACT': 'W'  , 'part': 'Q', 'sup': 'A1', 'val': [ 25.00,], 'GAMU': 1.50, 'GAMF': 0.00, 'PSI0': 0.90, 'PSI1': 0.20, 'PSI2': 0.00},
-    '6': {'ACT': 'W'  , 'part': 'Q', 'sup': 'A1', 'val': [ 30.00,], 'GAMU': 1.50, 'GAMF': 0.00, 'PSI0': 0.60, 'PSI1': 0.20, 'PSI2': 0.00},
-    '7': {'ACT': 'T'  , 'part': 'Q', 'sup': 'A1', 'val': [ -25.00,], 'GAMU': 1.50, 'GAMF': 0.00, 'PSI0': 0.60, 'PSI1': 0.20, 'PSI2': 0.00},
-    '8': {'ACT': 'T'  , 'part': 'Q', 'sup': 'A1', 'val': [ -30.00,], 'GAMU': 1.50, 'GAMF': 0.00, 'PSI0': 0.60, 'PSI1': 0.20, 'PSI2': 0.00},
-    #'5': {'ACT': 'G_3', 'part': 'G', 'sup': 'AG1', 'val': [ 30.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    #'6': {'ACT': 'G_3', 'part': 'G', 'sup': 'AG1', 'val': [ 25.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    #'7': {'ACT': 'G_3', 'part': 'G', 'sup': 'AG1', 'val': [-20.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    #'8': {'ACT': 'G_3', 'part': 'G', 'sup': 'AG1', 'val': [-15.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    #'9': {'ACT': 'G_3', 'part': 'G', 'sup': 'G', 'val': [-35.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-}
-
-"""
-test_db = {         # ständige Lasten mit ständiger Alternativgruppe (max: 32.8, min: -46.25)
-    '1': {'ACT': 'G_2', 'part': 'G', 'sup': 'G', 'val': [ 20.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    '2': {'ACT': 'G_2', 'part': 'G', 'sup': 'G', 'val': [-10.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    '3': {'ACT': 'G_1', 'part': 'G', 'sup': 'G', 'val': [ 12.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    '4': {'ACT': 'G_1', 'part': 'G', 'sup': 'G', 'val': [  6.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    '5': {'ACT': 'G_3', 'part': 'G', 'sup': 'AG1', 'val': [ 30.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    '6': {'ACT': 'G_3', 'part': 'G', 'sup': 'AG1', 'val': [ 25.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    '7': {'ACT': 'G_3', 'part': 'G', 'sup': 'AG1', 'val': [-20.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    '8': {'ACT': 'G_3', 'part': 'G', 'sup': 'AG1', 'val': [-15.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-    '9': {'ACT': 'G_3', 'part': 'G', 'sup': 'G', 'val': [-35.00,], 'GAMU': 1.35, 'GAMF': 1.00, 'PSI0': 1.00, 'PSI1': 1.00, 'PSI2': 1.00},
-}
-"""
-
-LCs = {'1': 'G_2', '2': 'G_2', '3': 'Q_A', '4': 'S', '5': 'W', '6': 'W', '7': 'T', '8': 'T',}# '9': 1}#'6': 0, '7': 0}#'4': 'G_1', '5': 'G_3', '6': 'G_3', '7': 'G_3', '8': 'G_3', }#'9': 'G_3'}
-logging = False
-max_res = False
-sls_type = 'RARE'
-
-# was passiert, wenn keine G oder Q lasten vorhanden sind
-
-if logging:
-    val, log = comb_ULS(test_db, LCs, max_res, 0, logging)
-    #val, log = comb_SLS(test_db, LCs, max_res, 0, sls_type, logging)
-    print('\nErgebnis:')
-    print(f'{val:5.3f}')
-    print(' LC:   val*gamma*(psi) = res     (gamma, PART, SUPP, ACT)')
-    print('--------------------------------------------------------')
-    print(log)
-else:
-    val = comb_ULS(test_db, LCs, max_res, 0)
-    #val = comb_SLS(test_db, LCs, max_res, 0, sls_type)
-    print('\nErgebnis:')
-    print(val)
