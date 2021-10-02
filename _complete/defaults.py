@@ -65,3 +65,18 @@ support_XYZ = [
     (0, 0.55, -0.3, 0.25),
     (0,  1.0, -0.3, 0.7),
 ]
+
+
+
+gnuplot_vars = {
+    'factor_s': [0.2,  '# Größe der Auflager'],
+    'factor_l': [0.3,  '# Abstand Text von Systemlinie'],
+    'offset'  : [0.2,  '# Abstand Last von Systemlinie'],
+    'factor_L': [0.06, '# Skalierung Last'],
+    'factor_N': [0.03, '# Skalierung Normalkraft'],
+    'factor_V': [0.03, '# Skalierung Querkraft'],
+    'factor_M': [0.03, '# Skalierung Moment'],
+    'factor_w': [0.03, '# Skalierung Verformung'],
+    'factor_t': [0.8,  '# Skalierung Text'],
+    'padding' : [1.0,  '# Überstand von Systemlinie zum Rand'],
+}

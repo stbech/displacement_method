@@ -102,6 +102,8 @@ def calculate_calc(db:dict):
             #db['calc'][key]['s']['w'] = dict()
             for bar, w_list in w_dict.items():
                 db['calc']['LC'][key]['s'][bar]['w'] = w_list
+
+            db['calc']['LC'][key]['C'] = displace_method.reaction_forces(db, key)
             # WGV auflösen, Schnittgrößen speichern
 
 

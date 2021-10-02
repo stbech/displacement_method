@@ -61,7 +61,7 @@ def initiate_comb() -> dict:
     comb_db = {
         'comb': {
             'globals': {
-                'KMOD': False,
+                'KLED': False,
             },
             'komb': {},
         },
@@ -765,6 +765,7 @@ def add_KNOT(db: dict, module_db: dict, values: dict, defaults: dict) -> dict:
 
 
 #TODO multiply with fakt -> erledigt prüfe Ergebnisse
+#TODO add PXP und PZP, in globale Richtung auf Projektion bezogen
 def add_STAB(db: dict, module_db: dict, values: dict, defaults: dict) -> dict:
     if not(len(module_db['load']['LC'])):
         raise Exception(f'STAB before LF defined')
@@ -908,9 +909,9 @@ def change_COMB_GLOBALS(db: dict, module_db: dict, values: dict, defaults: dict)
     value = find_key('KLED', values, defaults).upper()
 
     if value == 'JA':
-        return {'globals': {'KMOD': True}}
+        return {'globals': {'KLED': True}}
     elif value == 'NEIN':
-        return {'globals': {'KMOD': False}}
+        return {'globals': {'KLED': False}}
     else:
         raise Exception(f'Unknown literal {value} for KLED')
 
@@ -1034,11 +1035,11 @@ def add_SUPP(db: dict, module_db: dict, values: dict, defaults: dict) -> dict:
 
         if zust in ('PX', 'PZ', 'MY', 'UX', 'UZ', 'URY'):
             if extr == 'MAMI':
-                komb['res']['bar'][zust] = {'max': {}, 'min': {}}
+                komb['res']['node'][zust] = {'max': {}, 'min': {}}
             elif extr == 'MIN':
-                komb['res']['bar'][zust] = {'min': {}}
+                komb['res']['node'][zust] = {'min': {}}
             elif extr == 'MAX':
-                komb['res']['bar'][zust] = {'max': {}}
+                komb['res']['node'][zust] = {'max': {}}
         else:
             raise Exception(f'Unknown literal {zust} for ZUST')
 
@@ -1062,11 +1063,11 @@ def add_SUPP(db: dict, module_db: dict, values: dict, defaults: dict) -> dict:
 
         if zust in ('P', 'PT', 'M'):
             if extr == 'MAMI':
-                komb['res']['bar'][zust] = {'max': {}, 'min': {}}, 
+                komb['res']['spring'][zust] = {'max': {}, 'min': {}}, 
             elif extr == 'MIN':
-                komb['res']['bar'][zust] = {'min': {}}
+                komb['res']['spring'][zust] = {'min': {}}
             elif extr == 'MAX':
-                komb['res']['bar'][zust] = {'max': {}}
+                komb['res']['spring'][zust] = {'max': {}}
         else:
             raise Exception(f'Unknown literal {zust} for ZUST')
 

@@ -416,3 +416,37 @@ def deflection(db: dict, lc: int) -> dict:
     return w_bars
 
 
+def reaction_forces(db: dict, lc: int) -> dict:
+    C = {}
+
+    for node_nr, node in db['system']['nodes'].items():
+        if node['sup'] != {'x': 0, 'z': 0, 'y': 0}:
+            C[node_nr] = {}
+            C_node = [0, 0, 0]   # H, V, M
+
+            for bar_nr, bar in db['system']['bars'].items():
+                if bar['l'] == node_nr:
+                    alpha = np.radians(bar['alpha'] - node['alpha'])
+
+                    N = db['calc']['LC'][lc]['s'][bar_nr]['N'][0]
+                    Q = db['calc']['LC'][lc]['s'][bar_nr]['V'][0]
+
+                    dC = [np.cos(alpha)*N + np.sin(alpha)*Q, -np.sin(alpha)*N + np.cos(alpha)*Q, db['calc']['LC'][lc]['s'][bar_nr]['M'][0]]
+                    C_node = [C_node[i] + dC[i] for i in range(3)]
+
+                elif bar['r'] == node_nr:
+                    alpha = np.radians(bar['alpha'] - node['alpha'])
+
+                    N = db['calc']['LC'][lc]['s'][bar_nr]['N'][-1]
+                    Q = db['calc']['LC'][lc]['s'][bar_nr]['V'][-1]
+
+                    dC = [np.cos(alpha)*N + np.sin(alpha)*Q, -np.sin(alpha)*N + np.cos(alpha)*Q, db['calc']['LC'][lc]['s'][bar_nr]['M'][-1]]
+                    C_node = [C_node[i] - dC[i] for i in range(3)]
+
+            for i, sup in enumerate(node['sup'].items()):
+                if sup[1] != 0:
+                    C[node_nr][sup[0]] = [C_node[i]]
+             
+    return C
+
+#TODO create function to control equilibrium at all nodes and at complete structure

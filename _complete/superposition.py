@@ -399,7 +399,7 @@ def combine_live_loads(db: dict, A_nums: list, comb_dict: dict, i_point: int, lo
 
         if logging:
             log_lcs = []    # save all loadcase numbers
-
+#TODO alle Lastfälle je ACT zusammenfassen, dann Leiteinwirkung bestimmen
         for act_key, act in comb_dict['Q'].items():     # iterate over actions
             for lc_key, lc in act.items():              # iterate over loadcases
                 # the leading loadcase is the loadcase with the maximum difference between leading and accompanying value 
